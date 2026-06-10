@@ -1,5 +1,5 @@
 using UnityEngine;
-
+using Unity.Cinemachine;
 public class CharacterController : MonoBehaviour
 {
     [Header("Movement Settings")]
@@ -9,9 +9,8 @@ public class CharacterController : MonoBehaviour
     public float mouseSensitivity = 2f;
     
     [Header("Camera Settings")]
-    public Camera fpsCamera;
-    public Camera thirdPersonCamera;
-    public Transform thirdPersonTarget;
+    public CinemachineCamera fpsCamera;
+    public CinemachineCamera thirdPersonCamera;
     public float thirdPersonDistance = 5f;
     public float thirdPersonHeight = 2f;
     public float cameraTransitionSpeed = 5f;
@@ -27,12 +26,14 @@ public class CharacterController : MonoBehaviour
     private bool isFirstPerson = true;
     private Vector3 thirdPersonOffset;
     
+    [Header("Game State")]
+    public bool canMove = true;
+    
     void Start()
     {
         rb = GetComponent<Rigidbody>();
         
-        // Initialize cameras
-        InitializeCameras();
+        
         
         // Calculate third person offset
         thirdPersonOffset = new Vector3(0, thirdPersonHeight, -thirdPersonDistance);
@@ -46,6 +47,9 @@ public class CharacterController : MonoBehaviour
     
     void Update()
     {
+        // Jika tidak bisa bergerak (sedang di menu), skip semua input
+        if (!canMove) return;
+        
         // Ground check
         isGrounded = Physics.CheckSphere(groundCheck.position, groundDistance, groundMask);
         
@@ -121,13 +125,10 @@ public class CharacterController : MonoBehaviour
     {
         // If cameras are not assigned, try to find them
         if (fpsCamera == null)
-            fpsCamera = transform.Find("FPSCamera")?.GetComponent<Camera>();
+            fpsCamera = transform.Find("FPCamera")?.GetComponent<CinemachineCamera>();
         
         if (thirdPersonCamera == null)
-            thirdPersonCamera = transform.Find("ThirdPersonCamera")?.GetComponent<Camera>();
-            
-        if (thirdPersonTarget == null)
-            thirdPersonTarget = transform.Find("CameraTarget");
+            thirdPersonCamera = transform.Find("TPCamera")?.GetComponent<CinemachineCamera>();
         
         // Set initial camera state
         SwitchToFPS();
@@ -173,34 +174,32 @@ public class CharacterController : MonoBehaviour
     
     void UpdateThirdPersonCamera()
     {
-        if (thirdPersonCamera == null) return;
+        return; 
+    }
+
+    
+    // Public methods untuk mengontrol movement dari MainMenuManager
+    public void SetCanMove(bool canMove)
+    {
+        this.canMove = canMove;
         
-        // Calculate desired position
-        Vector3 targetPosition = transform.position + transform.TransformDirection(thirdPersonOffset);
-        
-        // Check for obstacles between player and camera
-        RaycastHit hit;
-        Vector3 direction = (targetPosition - transform.position).normalized;
-        float distance = Vector3.Distance(transform.position, targetPosition);
-        
-        if (Physics.Raycast(transform.position, direction, out hit, distance))
+        if (!canMove)
         {
-            // Adjust camera position to avoid clipping through walls
-            targetPosition = hit.point - direction * 0.2f;
+            // Stop semua movement
+            rb.linearVelocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
         }
-        
-        // Smooth camera movement
-        thirdPersonCamera.transform.position = Vector3.Lerp(
-            thirdPersonCamera.transform.position,
-            targetPosition,
-            Time.deltaTime * cameraTransitionSpeed
-        );
-        
-        // Look at target
-        Vector3 lookTarget = thirdPersonTarget != null ? thirdPersonTarget.position : transform.position + Vector3.up * 1.5f;
-        thirdPersonCamera.transform.LookAt(lookTarget);
-        
-        // Apply vertical rotation based on mouse input
-        thirdPersonCamera.transform.RotateAround(transform.position, transform.right, xRotation);
+    }
+    
+    public void FreezeCharacter()
+    {
+        SetCanMove(false);
+        rb.constraints = RigidbodyConstraints.FreezeAll;
+    }
+    
+    public void UnfreezeCharacter()
+    {
+        SetCanMove(true);
+        rb.constraints = RigidbodyConstraints.FreezeRotation;
     }
 }
