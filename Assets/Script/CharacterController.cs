@@ -23,7 +23,7 @@ public class CharacterController : MonoBehaviour
     private Rigidbody rb;
     private bool isGrounded;
     private float xRotation = 0f;
-    private bool isFirstPerson = true;
+    private bool isFirstPerson = false;
     private Vector3 thirdPersonOffset;
     
     [Header("Game State")]
@@ -33,16 +33,19 @@ public class CharacterController : MonoBehaviour
     {
         rb = GetComponent<Rigidbody>();
         
-        
+        // Initialize cameras
+        InitializeCameras();
         
         // Calculate third person offset
         thirdPersonOffset = new Vector3(0, thirdPersonHeight, -thirdPersonDistance);
         
-        // Lock cursor to center of screen
-        Cursor.lockState = CursorLockMode.Locked;
+        // JANGAN lock cursor di Start - akan di-handle oleh MainMenuManager
+        // Cursor akan di-lock hanya saat gameplay dimulai
         
         // Freeze rotation on rigidbody to prevent tipping over
         rb.freezeRotation = true;
+        
+        isFirstPerson = false;
     }
     
     void Update()
@@ -195,11 +198,34 @@ public class CharacterController : MonoBehaviour
     {
         SetCanMove(false);
         rb.constraints = RigidbodyConstraints.FreezeAll;
+        
+        // Unlock cursor saat character di-freeze (menu state)
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
     }
     
     public void UnfreezeCharacter()
     {
         SetCanMove(true);
         rb.constraints = RigidbodyConstraints.FreezeRotation;
+        
+        // Lock cursor saat character bisa bergerak (gameplay state)
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+    }
+    
+    // Method untuk mengontrol cursor secara manual
+    public void SetCursorLocked(bool locked)
+    {
+        if (locked)
+        {
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+        }
+        else
+        {
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+        }
     }
 }

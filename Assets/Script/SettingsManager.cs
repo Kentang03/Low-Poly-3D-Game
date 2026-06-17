@@ -119,22 +119,52 @@ public class SettingsManager : MonoBehaviour
     // Audio Settings
     public void SetMasterVolume(float volume)
     {
+        // Clamp volume to prevent Log10(0) error
+        volume = Mathf.Clamp(volume, 0.0001f, 1f);
+        
         if (audioMixer != null)
-            audioMixer.SetFloat("MasterVolume", Mathf.Log10(volume) * 20);
+        {
+            bool success = audioMixer.SetFloat("MasterVolume", Mathf.Log10(volume) * 20);
+            Debug.Log($"Set Master Volume: {volume} -> {Mathf.Log10(volume) * 20}dB, Success: {success}");
+        }
+        else
+        {
+            Debug.LogWarning("AudioMixer is null!");
+        }
         PlayerPrefs.SetFloat("MasterVolume", volume);
     }
     
     public void SetMusicVolume(float volume)
     {
+        // Clamp volume to prevent Log10(0) error
+        volume = Mathf.Clamp(volume, 0.0001f, 1f);
+        
         if (audioMixer != null)
-            audioMixer.SetFloat("MusicVolume", Mathf.Log10(volume) * 20);
+        {
+            bool success = audioMixer.SetFloat("MusicVolume", Mathf.Log10(volume) * 20);
+            Debug.Log($"Set Music Volume: {volume} -> {Mathf.Log10(volume) * 20}dB, Success: {success}");
+        }
+        else
+        {
+            Debug.LogWarning("AudioMixer is null!");
+        }
         PlayerPrefs.SetFloat("MusicVolume", volume);
     }
     
     public void SetSFXVolume(float volume)
     {
+        // Clamp volume to prevent Log10(0) error
+        volume = Mathf.Clamp(volume, 0.0001f, 1f);
+        
         if (audioMixer != null)
-            audioMixer.SetFloat("SFXVolume", Mathf.Log10(volume) * 20);
+        {
+            bool success = audioMixer.SetFloat("SFXVolume", Mathf.Log10(volume) * 20);
+            Debug.Log($"Set SFX Volume: {volume} -> {Mathf.Log10(volume) * 20}dB, Success: {success}");
+        }
+        else
+        {
+            Debug.LogWarning("AudioMixer is null!");
+        }
         PlayerPrefs.SetFloat("SFXVolume", volume);
     }
     

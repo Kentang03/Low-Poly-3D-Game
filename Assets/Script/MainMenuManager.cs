@@ -9,9 +9,17 @@ public class MainMenuManager : MonoBehaviour
     public GameObject mainMenuPanel;
     public Button playButton;
     public Button settingsButton;
+    public Button creditsButton;
+    public Button controlsButton;
     public Button exitButton;
+    
+    [Header("Panel References")]
     public GameObject settingsPanel;
     public Button backFromSettingsButton;
+    public GameObject creditsPanel;
+    public Button backFromCreditsButton;
+    public GameObject controlsPanel;
+    public Button backFromControlsButton;
     
     [Header("Camera References")]
     public CinemachineCamera menuCamera;
@@ -71,9 +79,15 @@ public class MainMenuManager : MonoBehaviour
         if (mainMenuPanel != null)
             mainMenuPanel.SetActive(true);
             
-        // Pastikan settings panel tidak aktif
+        // Pastikan semua panel lain tidak aktif
         if (settingsPanel != null)
             settingsPanel.SetActive(false);
+            
+        if (creditsPanel != null)
+            creditsPanel.SetActive(false);
+            
+        if (controlsPanel != null)
+            controlsPanel.SetActive(false);
             
         // Set camera menu sebagai aktif
         if (menuCamera != null)
@@ -106,11 +120,23 @@ public class MainMenuManager : MonoBehaviour
         if (settingsButton != null)
             settingsButton.onClick.AddListener(OpenSettings);
             
+        if (creditsButton != null)
+            creditsButton.onClick.AddListener(OpenCredits);
+            
+        if (controlsButton != null)
+            controlsButton.onClick.AddListener(OpenControls);
+            
         if (exitButton != null)
             exitButton.onClick.AddListener(ExitGame);
             
         if (backFromSettingsButton != null)
             backFromSettingsButton.onClick.AddListener(CloseSettings);
+            
+        if (backFromCreditsButton != null)
+            backFromCreditsButton.onClick.AddListener(CloseCredits);
+            
+        if (backFromControlsButton != null)
+            backFromControlsButton.onClick.AddListener(CloseControls);
     }
     
     public IEnumerator StartGame()
@@ -228,6 +254,50 @@ public class MainMenuManager : MonoBehaviour
         
         if (settingsPanel != null)
             settingsPanel.SetActive(false);
+            
+        if (mainMenuPanel != null)
+            mainMenuPanel.SetActive(true);
+    }
+    
+    public void OpenCredits()
+    {
+        PlayButtonSound();
+        
+        if (mainMenuPanel != null)
+            mainMenuPanel.SetActive(false);
+            
+        if (creditsPanel != null)
+            creditsPanel.SetActive(true);
+    }
+    
+    public void CloseCredits()
+    {
+        PlayButtonSound();
+        
+        if (creditsPanel != null)
+            creditsPanel.SetActive(false);
+            
+        if (mainMenuPanel != null)
+            mainMenuPanel.SetActive(true);
+    }
+    
+    public void OpenControls()
+    {
+        PlayButtonSound();
+        
+        if (mainMenuPanel != null)
+            mainMenuPanel.SetActive(false);
+            
+        if (controlsPanel != null)
+            controlsPanel.SetActive(true);
+    }
+    
+    public void CloseControls()
+    {
+        PlayButtonSound();
+        
+        if (controlsPanel != null)
+            controlsPanel.SetActive(false);
             
         if (mainMenuPanel != null)
             mainMenuPanel.SetActive(true);

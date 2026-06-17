@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class PauseMenuManager : MonoBehaviour
 {
@@ -29,14 +30,17 @@ public class PauseMenuManager : MonoBehaviour
     
     void Update()
     {
-        // Handle pause input
+        // Handle pause input (only when game is started)
         if (Input.GetKeyDown(KeyCode.Escape))
         {
+            if (gameManager == null || !gameManager.isGameStarted)
+                return;
+                
             if (isPaused)
             {
                 ResumeGame();
             }
-            else if (gameManager != null && gameManager.isGameStarted && !gameManager.isPaused)
+            else
             {
                 PauseGame();
             }
@@ -83,7 +87,7 @@ public class PauseMenuManager : MonoBehaviour
     
     public void PauseGame()
     {
-        if (isPaused) return;
+        if (isPaused || gameManager == null || !gameManager.isGameStarted) return;
         
         isPaused = true;
         
@@ -98,9 +102,13 @@ public class PauseMenuManager : MonoBehaviour
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
         
+        // Freeze character movement
+        var playerController = FindObjectOfType<CharacterController>();
+        if (playerController != null)
+            playerController.SetCanMove(false);
+        
         // Notify game manager
-        if (gameManager != null)
-            gameManager.PauseGame();
+        gameManager.SetPauseState(true);
             
         // Play pause sound
         if (audioManager != null)
@@ -111,7 +119,7 @@ public class PauseMenuManager : MonoBehaviour
     
     public void ResumeGame()
     {
-        if (!isPaused) return;
+        if (!isPaused || gameManager == null) return;
         
         isPaused = false;
         
@@ -129,9 +137,13 @@ public class PauseMenuManager : MonoBehaviour
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
         
+        // Unfreeze character movement
+        var playerController = FindObjectOfType<CharacterController>();
+        if (playerController != null)
+            playerController.SetCanMove(true);
+        
         // Notify game manager
-        if (gameManager != null)
-            gameManager.ResumeGame();
+        gameManager.SetPauseState(false);
             
         // Play resume sound
         if (audioManager != null)
@@ -169,7 +181,7 @@ public class PauseMenuManager : MonoBehaviour
         if (audioManager != null)
             audioManager.PlayButtonClick();
         
-        // Resume time before going to main menu
+        // Resume time before restarting scene
         Time.timeScale = 1f;
         
         isPaused = false;
@@ -181,15 +193,14 @@ public class PauseMenuManager : MonoBehaviour
         if (pauseSettingsPanel != null)
             pauseSettingsPanel.SetActive(false);
         
-        // Return to main menu
-        if (mainMenuManager != null)
-        {
-            mainMenuManager.ReturnToMainMenu();
-        }
-        else if (gameManager != null)
-        {
-            gameManager.RestartGame();
-        }
+        // Show cursor untuk main menu
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+        
+        // Restart scene from beginning
+        UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
+        
+        Debug.Log("Restarting scene and returning to main menu...");
     }
     
     public void QuitGame()

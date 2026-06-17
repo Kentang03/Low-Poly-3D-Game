@@ -69,28 +69,22 @@ public class GameManager : MonoBehaviour
         Debug.Log("Game Started!");
     }
     
-    public void PauseGame()
+    public void SetPauseState(bool paused)
     {
-        isPaused = true;
-        Time.timeScale = 0f;
-        
-        // Show cursor
-        Cursor.lockState = CursorLockMode.None;
-        Cursor.visible = true;
-        
-        Debug.Log("Game Paused!");
+        isPaused = paused;
+        Debug.Log($"GameManager: Pause state set to {paused}");
     }
     
+    // Deprecated - use SetPauseState instead
+    public void PauseGame()
+    {
+        SetPauseState(true);
+    }
+    
+    // Deprecated - use SetPauseState instead  
     public void ResumeGame()
     {
-        isPaused = false;
-        Time.timeScale = 1f;
-        
-        // Hide cursor
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
-        
-        Debug.Log("Game Resumed!");
+        SetPauseState(false);
     }
     
     public void RestartGame()
@@ -119,10 +113,6 @@ public class GameManager : MonoBehaviour
     
     void Update()
     {
-        // Handle pause with ESC key during gameplay
-        if (Input.GetKeyDown(KeyCode.Escape) && isGameStarted && !isPaused)
-        {
-            PauseGame();
-        }
+        // Remove duplicate pause handling - now handled by PauseMenuManager
     }
 }
