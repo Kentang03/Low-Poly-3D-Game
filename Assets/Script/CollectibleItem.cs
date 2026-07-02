@@ -4,6 +4,10 @@ public class CollectibleItem : MonoBehaviour
 {
     [Header("Item Settings")]
     public string itemName = "Crystal";
+    public string itemDescription = "A mysterious crystal";
+    public Sprite itemIcon; // Icon untuk inventory
+    public bool canBePlaced = false; // Apakah item bisa ditempatkan
+    public GameObject itemPrefab; // Prefab untuk placement system
     public int itemValue = 1;
     public bool isCollected = false;
     
@@ -33,8 +37,9 @@ public class CollectibleItem : MonoBehaviour
     {
         if (!isCollected)
         {
-            // Rotate item
-            transform.Rotate(Vector3.up * rotationSpeed * Time.deltaTime);
+            // Rotate item on Y axis only
+            float yRotation = transform.eulerAngles.y + (rotationSpeed * Time.deltaTime);
+            transform.eulerAngles = new Vector3(transform.eulerAngles.x, yRotation, transform.eulerAngles.z);
             
             // Bob up and down
             float newY = startPosition.y + Mathf.Sin(Time.time * bobSpeed) * bobHeight;
@@ -67,7 +72,26 @@ public class CollectibleItem : MonoBehaviour
             Instantiate(collectEffect, transform.position, transform.rotation);
         }
         
-        // Notify collection manager
+        // Add to inventory system
+        if (InventorySystem.Instance != null)
+        {
+            bool addedToInventory = InventorySystem.Instance.AddItem(
+                itemName,
+                itemDescription,
+                itemIcon,
+                canBePlaced,
+                itemPrefab
+            );
+            
+            if (!addedToInventory)
+            {
+                Debug.Log("Inventory penuh! Item tidak dapat diambil.");
+                isCollected = false;
+                return;
+            }
+        }
+        
+        // Notify old collection manager (for backward compatibility)
         ItemCollectionManager manager = FindObjectOfType<ItemCollectionManager>();
         if (manager != null)
         {
@@ -81,6 +105,6 @@ public class CollectibleItem : MonoBehaviour
         // Destroy after sound finishes
         Destroy(gameObject, collectSound != null ? collectSound.length : 0.1f);
         
-        Debug.Log($"Collected {itemName}!");
+        Debug.Log($"Collected {itemName} and added to inventory!");
     }
 }

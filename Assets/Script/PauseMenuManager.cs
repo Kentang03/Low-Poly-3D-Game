@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using Invector.vCharacterController; // Add Invector namespace
 
 public class PauseMenuManager : MonoBehaviour
 {
@@ -15,10 +16,14 @@ public class PauseMenuManager : MonoBehaviour
     public GameObject pauseSettingsPanel;
     public Button backFromSettingsButton;
     
-    [Header("References")]
-    public MainMenuManager mainMenuManager;
+    [Header("Player Controller References")]
+    public vThirdPersonController vThirdPersonController;  // Invector controller
+    public vThirdPersonInput vThirdPersonInput;            // Invector input
+    public InvectorControllerAdapter invectorAdapter;      // Optional adapter (if still needed)
+    [Header("Manager References")]
     public GameManager gameManager;
     public AudioManager audioManager;
+    public SceneTransitionManager sceneTransitionManager;
     
     private bool isPaused = false;
     
@@ -49,15 +54,26 @@ public class PauseMenuManager : MonoBehaviour
     
     void InitializePauseMenu()
     {
-        // Get references jika belum di-assign
+        // Get manager references
         if (gameManager == null)
             gameManager = GameManager.Instance;
             
         if (audioManager == null)
             audioManager = AudioManager.Instance;
             
-        if (mainMenuManager == null)
-            mainMenuManager = FindObjectOfType<MainMenuManager>();
+        if (sceneTransitionManager == null)
+            sceneTransitionManager = SceneTransitionManager.Instance;
+        
+        // Get Invector controller references
+        if (vThirdPersonController == null)
+            vThirdPersonController = FindObjectOfType<vThirdPersonController>();
+            
+        if (vThirdPersonInput == null)
+            vThirdPersonInput = FindObjectOfType<vThirdPersonInput>();
+            
+        // Optional adapter for backward compatibility
+        if (invectorAdapter == null)
+            invectorAdapter = FindObjectOfType<InvectorControllerAdapter>();
         
         // Pastikan pause menu tidak aktif di awal
         if (pauseMenuPanel != null)
@@ -90,10 +106,7 @@ public class PauseMenuManager : MonoBehaviour
         if (isPaused || gameManager == null || !gameManager.isGameStarted) return;
         
         isPaused = true;
-        
-        // Pause game time
-        Time.timeScale = 0f;
-        
+                
         // Show pause menu
         if (pauseMenuPanel != null)
             pauseMenuPanel.SetActive(true);
@@ -102,10 +115,8 @@ public class PauseMenuManager : MonoBehaviour
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
         
-        // Freeze character movement
-        var playerController = FindObjectOfType<CharacterController>();
-        if (playerController != null)
-            playerController.SetCanMove(false);
+        // Freeze character movement using Invector controller
+        FreezePlayerMovement(true);
         
         // Notify game manager
         gameManager.SetPauseState(true);
@@ -137,10 +148,8 @@ public class PauseMenuManager : MonoBehaviour
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
         
-        // Unfreeze character movement
-        var playerController = FindObjectOfType<CharacterController>();
-        if (playerController != null)
-            playerController.SetCanMove(true);
+        // Unfreeze character movement using Invector controller
+        FreezePlayerMovement(false);
         
         // Notify game manager
         gameManager.SetPauseState(false);
@@ -181,7 +190,7 @@ public class PauseMenuManager : MonoBehaviour
         if (audioManager != null)
             audioManager.PlayButtonClick();
         
-        // Resume time before restarting scene
+        // Resume time before switching scene
         Time.timeScale = 1f;
         
         isPaused = false;
@@ -197,10 +206,18 @@ public class PauseMenuManager : MonoBehaviour
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
         
-        // Restart scene from beginning
-        UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
+        // Use scene transition manager to return to main menu
+        if (sceneTransitionManager != null)
+        {
+            sceneTransitionManager.ReturnToMainMenu();
+        }
+        else
+        {
+            // Fallback: restart current scene (for backward compatibility)
+            UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
+        }
         
-        Debug.Log("Restarting scene and returning to main menu...");
+        Debug.Log("Returning to main menu...");
     }
     
     public void QuitGame()
@@ -219,5 +236,52 @@ public class PauseMenuManager : MonoBehaviour
     public bool IsPaused()
     {
         return isPaused;
+    }
+    
+    /// <summary>
+    /// Freeze or unfreeze player movement using Invector controller
+    /// </summary>
+    /// <param name="freeze">True to freeze movement, false to unfreeze</param>
+    private void FreezePlayerMovement(bool freeze)
+    {
+        // Primary method: Use Invector vThirdPersonController and vThirdPersonInput
+        if (vThirdPersonController != null && vThirdPersonInput != null)
+        {
+            // Disable/enable input component
+            vThirdPersonInput.enabled = !freeze;
+            
+            if (freeze)
+            {
+                // Stop current movement
+                vThirdPersonController.input = Vector3.zero;
+                vThirdPersonController.isSprinting = false;
+            }
+            
+            Debug.Log($"Invector Controller movement {(freeze ? "frozen" : "unfrozen")}");
+            return;
+        }
+        
+        // Fallback method: Use InvectorControllerAdapter if available
+        if (invectorAdapter != null)
+        {
+            if (freeze)
+                invectorAdapter.SetCanMove(false);
+            else
+                invectorAdapter.SetCanMove(true);
+                
+            Debug.Log($"Invector Adapter movement {(freeze ? "frozen" : "unfrozen")}");
+            return;
+        }
+        
+        // Legacy fallback: Direct component control (not recommended)
+        var legacyController = FindObjectOfType<CharacterController>();
+        if (legacyController != null)
+        {
+            legacyController.enabled = !freeze;
+            Debug.Log($"Legacy Controller movement {(freeze ? "frozen" : "unfrozen")}");
+            return;
+        }
+        
+        Debug.LogWarning("No suitable player controller found for movement control!");
     }
 }

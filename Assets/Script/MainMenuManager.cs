@@ -1,35 +1,40 @@
 using UnityEngine;
 using UnityEngine.UI;
-using Unity.Cinemachine;
+using UnityEngine.SceneManagement;
 using System.Collections;
 
 public class MainMenuManager : MonoBehaviour
 {
     [Header("UI References")]
-    public GameObject mainMenuPanel;
+    public GameObject mainMenuPanel;           // Panel utama dengan background
+    public GameObject mainMenuButtonsGroup;    // GameObject yang berisi semua button utama (Play, Settings, Credits, Exit)
     public Button playButton;
     public Button settingsButton;
     public Button creditsButton;
-    public Button controlsButton;
     public Button exitButton;
     
     [Header("Panel References")]
     public GameObject settingsPanel;
     public Button backFromSettingsButton;
+    
+    [Header("Settings Sub-Panels (Left Side Navigation)")]
+    public Button audioSettingsButton;    // Button to show audio settings
+    public Button controlsButton;         // Button to show controls
+    
+    [Header("Settings Content Panels (Right Side Display)")]
+    public GameObject audioSettingsPanel;   // Audio settings content panel
+    public GameObject controlsSettingsPanel; // Controls content panel
+    
+    [Header("Other Panels")]
     public GameObject creditsPanel;
     public Button backFromCreditsButton;
-    public GameObject controlsPanel;
-    public Button backFromControlsButton;
+    public GameObject controlsPanel;      // Deprecated - use controlsSettingsPanel instead
+    public Button backFromControlsButton; // Deprecated
     
-    [Header("Camera References")]
-    public CinemachineCamera menuCamera;
-    public CinemachineCamera gameplayCamera;
-    public CameraTransition cameraTransition;
-    public float transitionDuration = 2f;
-    
-    [Header("Character Reference")]
-    public CharacterController playerController;
-    public GameObject player;
+    [Header("Scene Management")]
+    public string gameSceneName = "GameScene"; // Nama scene gameplay
+    public GameObject loadingScreen;
+    public Slider loadingBar;
     
     [Header("Audio")]
     public AudioSource buttonClickSound;
@@ -37,9 +42,7 @@ public class MainMenuManager : MonoBehaviour
     
     [Header("References")]
     public AudioManager audioManager;
-    public GameManager gameManager;
     
-    private bool isInMenu = true;
     private bool isTransitioning = false;
     
     void Start()
@@ -51,6 +54,9 @@ public class MainMenuManager : MonoBehaviour
         // Pastikan cursor visible di menu
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
+        
+        // Set framerate untuk menu (tidak perlu terlalu tinggi)
+        Application.targetFrameRate = 60;
     }
     
     void InitializeReferences()
@@ -58,26 +64,21 @@ public class MainMenuManager : MonoBehaviour
         // Get references jika belum di-assign
         if (audioManager == null)
             audioManager = AudioManager.Instance;
-            
-        if (gameManager == null)
-            gameManager = GameManager.Instance;
-            
-        if (cameraTransition == null)
-            cameraTransition = FindObjectOfType<CameraTransition>();
-            
-        // Setup camera transition jika ada
-        if (cameraTransition != null)
-        {
-            cameraTransition.SetCameras(menuCamera, gameplayCamera);
-            cameraTransition.transitionDuration = transitionDuration;
-        }
+        
+        // Hide loading screen at start
+        if (loadingScreen != null)
+            loadingScreen.SetActive(false);
     }
     
     void InitializeMainMenu()
     {
-        // Pastikan menu panel aktif
+        // Pastikan menu panel aktif (background tetap terlihat)
         if (mainMenuPanel != null)
             mainMenuPanel.SetActive(true);
+            
+        // Pastikan button group aktif di awal
+        if (mainMenuButtonsGroup != null)
+            mainMenuButtonsGroup.SetActive(true);
             
         // Pastikan semua panel lain tidak aktif
         if (settingsPanel != null)
@@ -88,34 +89,15 @@ public class MainMenuManager : MonoBehaviour
             
         if (controlsPanel != null)
             controlsPanel.SetActive(false);
-            
-        // Set camera menu sebagai aktif
-        if (menuCamera != null)
-            menuCamera.enabled = true;
-            
-        // Set camera gameplay sebagai tidak aktif
-        if (gameplayCamera != null)
-            gameplayCamera.enabled = false;
-            
-        // Freeze character movement
-        if (playerController != null)
-        {
-            playerController.FreezeCharacter();
-        }
-        else
-        {
-            FreezePlayer(true);
-        }
         
-        // Set game state
-        isInMenu = true;
+        // Set time scale normal
         Time.timeScale = 1f;
     }
     
     void SetupButtonListeners()
     {
         if (playButton != null)
-            playButton.onClick.AddListener(() => StartCoroutine(StartGame()));
+            playButton.onClick.AddListener(StartGame);
             
         if (settingsButton != null)
             settingsButton.onClick.AddListener(OpenSettings);
@@ -123,117 +105,82 @@ public class MainMenuManager : MonoBehaviour
         if (creditsButton != null)
             creditsButton.onClick.AddListener(OpenCredits);
             
-        if (controlsButton != null)
-            controlsButton.onClick.AddListener(OpenControls);
-            
         if (exitButton != null)
             exitButton.onClick.AddListener(ExitGame);
             
         if (backFromSettingsButton != null)
             backFromSettingsButton.onClick.AddListener(CloseSettings);
             
+        // Settings sub-panel navigation buttons
+        if (audioSettingsButton != null)
+            audioSettingsButton.onClick.AddListener(ShowAudioSettings);
+            
+        if (controlsButton != null)
+            controlsButton.onClick.AddListener(ShowControlsSettings);
+            
         if (backFromCreditsButton != null)
             backFromCreditsButton.onClick.AddListener(CloseCredits);
             
+        // Deprecated controls panel support (for backward compatibility)
         if (backFromControlsButton != null)
             backFromControlsButton.onClick.AddListener(CloseControls);
     }
     
-    public IEnumerator StartGame()
+    public void StartGame()
     {
-        if (isTransitioning) yield break;
+        if (isTransitioning) return;
         
         isTransitioning = true;
         
-        // Play button click sound dan transition sound
+        // Play button click sound
         PlayButtonSound();
-        if (audioManager != null)
-            audioManager.PlayTransition();
         
-        // Disable main menu UI
-        if (mainMenuPanel != null)
-            mainMenuPanel.SetActive(false);
-            
-        // Start camera transition
-        if (cameraTransition != null)
-        {
-            cameraTransition.StartTransitionWithCallback(() => {
-                OnTransitionComplete();
-            });
-            
-            // Wait for transition to complete
-            yield return new WaitUntil(() => !cameraTransition.IsTransitioning);
-        }
-        else
-        {
-            // Fallback to manual transition
-            yield return StartCoroutine(TransitionToGameplay());
-        }
+        // Start loading game scene
+        StartCoroutine(LoadGameScene());
     }
     
-    void OnTransitionComplete()
+    IEnumerator LoadGameScene()
     {
-        // Enable player movement
-        if (playerController != null)
-        {
-            playerController.UnfreezeCharacter();
-        }
-        else
-        {
-            FreezePlayer(false);
-        }
+        // Show loading screen
+        if (loadingScreen != null)
+            loadingScreen.SetActive(true);
+            
+        // Hide main menu buttons (background tetap terlihat)
+        if (mainMenuButtonsGroup != null)
+            mainMenuButtonsGroup.SetActive(false);
         
-        // Lock cursor for gameplay
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
+        // Wait a frame
+        yield return null;
         
-        // Change music to gameplay
-        if (audioManager != null)
-            audioManager.PlayGameplayMusic();
-            
-        // Notify game manager
-        if (gameManager != null)
-            gameManager.StartGame();
+        // Start loading the scene asynchronously
+        AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(gameSceneName);
         
-        // Set game state
-        isInMenu = false;
-        isTransitioning = false;
-    }
-    
-    IEnumerator TransitionToGameplay()
-    {
-        // Smooth transition between cameras
-        if (menuCamera != null && gameplayCamera != null)
+        // Don't allow scene activation until loading is complete
+        asyncLoad.allowSceneActivation = false;
+        
+        // Update loading bar while loading
+        while (!asyncLoad.isDone)
         {
-            float elapsedTime = 0f;
+            // Loading progress goes from 0 to 0.9
+            float progress = Mathf.Clamp01(asyncLoad.progress / 0.9f);
             
-            // Get starting positions and rotations
-            Vector3 startPos = menuCamera.transform.position;
-            Quaternion startRot = menuCamera.transform.rotation;
+            if (loadingBar != null)
+                loadingBar.value = progress;
             
-            Vector3 endPos = gameplayCamera.transform.position;
-            Quaternion endRot = gameplayCamera.transform.rotation;
-            
-            while (elapsedTime < transitionDuration)
+            // Scene is ready to activate
+            if (asyncLoad.progress >= 0.9f)
             {
-                float progress = elapsedTime / transitionDuration;
-                progress = Mathf.SmoothStep(0f, 1f, progress); // Smooth curve
+                // Optional: wait a moment to show 100% loading
+                if (loadingBar != null)
+                    loadingBar.value = 1f;
+                    
+                yield return new WaitForSeconds(0.5f);
                 
-                // Interpolate position and rotation
-                menuCamera.transform.position = Vector3.Lerp(startPos, endPos, progress);
-                menuCamera.transform.rotation = Quaternion.Lerp(startRot, endRot, progress);
-                
-                elapsedTime += Time.deltaTime;
-                yield return null;
+                // Activate the scene
+                asyncLoad.allowSceneActivation = true;
             }
             
-            // Ensure final position is exact
-            menuCamera.transform.position = endPos;
-            menuCamera.transform.rotation = endRot;
-            
-            // Switch to gameplay camera
-            menuCamera.enabled = false;
-            gameplayCamera.enabled = true;
+            yield return null;
         }
     }
     
@@ -241,11 +188,15 @@ public class MainMenuManager : MonoBehaviour
     {
         PlayButtonSound();
         
-        if (mainMenuPanel != null)
-            mainMenuPanel.SetActive(false);
+        // Sembunyikan button group (background tetap terlihat)
+        if (mainMenuButtonsGroup != null)
+            mainMenuButtonsGroup.SetActive(false);
             
         if (settingsPanel != null)
             settingsPanel.SetActive(true);
+            
+        // Show audio settings by default when opening settings
+        ShowAudioSettings();
     }
     
     public void CloseSettings()
@@ -255,16 +206,115 @@ public class MainMenuManager : MonoBehaviour
         if (settingsPanel != null)
             settingsPanel.SetActive(false);
             
-        if (mainMenuPanel != null)
-            mainMenuPanel.SetActive(true);
+        // Hide all settings content panels
+        HideAllSettingsContentPanels();
+            
+        // Tampilkan kembali button group (background sudah terlihat)
+        if (mainMenuButtonsGroup != null)
+            mainMenuButtonsGroup.SetActive(true);
+    }
+    
+    /// <summary>
+    /// Show Audio Settings in the right panel
+    /// </summary>
+    public void ShowAudioSettings()
+    {
+        PlayButtonSound();
+        
+        // Hide all content panels first
+        HideAllSettingsContentPanels();
+        
+        // Show audio settings panel
+        if (audioSettingsPanel != null)
+        {
+            audioSettingsPanel.SetActive(true);
+        }
+        
+        // Visual feedback - highlight audio button (optional)
+        HighlightSelectedButton(audioSettingsButton);
+        
+        Debug.Log("Audio Settings panel displayed");
+    }
+    
+    /// <summary>
+    /// Show Controls Settings in the right panel
+    /// </summary>
+    public void ShowControlsSettings()
+    {
+        PlayButtonSound();
+        
+        // Hide all content panels first
+        HideAllSettingsContentPanels();
+        
+        // Show controls settings panel
+        if (controlsSettingsPanel != null)
+        {
+            controlsSettingsPanel.SetActive(true);
+        }
+        
+        // Visual feedback - highlight controls button (optional)
+        HighlightSelectedButton(controlsButton);
+        
+        Debug.Log("Controls Settings panel displayed");
+    }
+    
+    /// <summary>
+    /// Hide all settings content panels
+    /// </summary>
+    private void HideAllSettingsContentPanels()
+    {
+        if (audioSettingsPanel != null)
+            audioSettingsPanel.SetActive(false);
+            
+        if (controlsSettingsPanel != null)
+            controlsSettingsPanel.SetActive(false);
+    }
+    
+    /// <summary>
+    /// Highlight the selected navigation button (optional visual feedback)
+    /// </summary>
+    /// <param name="selectedButton">The button to highlight</param>
+    private void HighlightSelectedButton(Button selectedButton)
+    {
+        // Reset all buttons to normal state
+        ResetButtonHighlights();
+        
+        // Highlight the selected button
+        if (selectedButton != null)
+        {
+            var colors = selectedButton.colors;
+            colors.normalColor = colors.selectedColor; // Use selected color as normal
+            selectedButton.colors = colors;
+        }
+    }
+    
+    /// <summary>
+    /// Reset all navigation buttons to normal state
+    /// </summary>
+    private void ResetButtonHighlights()
+    {
+        if (audioSettingsButton != null)
+        {
+            var colors = audioSettingsButton.colors;
+            colors.normalColor = Color.white; // Default normal color
+            audioSettingsButton.colors = colors;
+        }
+        
+        if (controlsButton != null)
+        {
+            var colors = controlsButton.colors;
+            colors.normalColor = Color.white; // Default normal color
+            controlsButton.colors = colors;
+        }
     }
     
     public void OpenCredits()
     {
         PlayButtonSound();
         
-        if (mainMenuPanel != null)
-            mainMenuPanel.SetActive(false);
+        // Sembunyikan button group (background tetap terlihat)
+        if (mainMenuButtonsGroup != null)
+            mainMenuButtonsGroup.SetActive(false);
             
         if (creditsPanel != null)
             creditsPanel.SetActive(true);
@@ -277,30 +327,21 @@ public class MainMenuManager : MonoBehaviour
         if (creditsPanel != null)
             creditsPanel.SetActive(false);
             
-        if (mainMenuPanel != null)
-            mainMenuPanel.SetActive(true);
+        // Tampilkan kembali button group (background sudah terlihat)
+        if (mainMenuButtonsGroup != null)
+            mainMenuButtonsGroup.SetActive(true);
     }
     
+    // Deprecated methods for backward compatibility
     public void OpenControls()
     {
-        PlayButtonSound();
-        
-        if (mainMenuPanel != null)
-            mainMenuPanel.SetActive(false);
-            
-        if (controlsPanel != null)
-            controlsPanel.SetActive(true);
+        ShowControlsSettings(); // Redirect to new method
     }
     
     public void CloseControls()
     {
-        PlayButtonSound();
-        
-        if (controlsPanel != null)
-            controlsPanel.SetActive(false);
-            
-        if (mainMenuPanel != null)
-            mainMenuPanel.SetActive(true);
+        // Legacy behavior - close entire settings
+        CloseSettings();
     }
     
     public void ExitGame()
@@ -314,30 +355,6 @@ public class MainMenuManager : MonoBehaviour
         #endif
     }
     
-    void FreezePlayer(bool freeze)
-    {
-        if (playerController != null)
-        {
-            playerController.enabled = !freeze;
-        }
-        
-        if (player != null)
-        {
-            Rigidbody rb = player.GetComponent<Rigidbody>();
-            if (rb != null)
-            {
-                if (freeze)
-                {
-                    rb.constraints = RigidbodyConstraints.FreezeAll;
-                }
-                else
-                {
-                    rb.constraints = RigidbodyConstraints.FreezeRotation;
-                }
-            }
-        }
-    }
-    
     void PlayButtonSound()
     {
         if (audioManager != null)
@@ -347,71 +364,6 @@ public class MainMenuManager : MonoBehaviour
         else if (buttonClickSound != null)
         {
             buttonClickSound.Play();
-        }
-    }
-    
-    // Method untuk kembali ke main menu (bisa dipanggil dari pause menu)
-    public void ReturnToMainMenu()
-    {
-        StartCoroutine(TransitionToMainMenu());
-    }
-    
-    IEnumerator TransitionToMainMenu()
-    {
-        if (isTransitioning) yield break;
-        
-        isTransitioning = true;
-        
-        // Freeze player
-        FreezePlayer(true);
-        
-        // Transition camera back to menu
-        if (gameplayCamera != null && menuCamera != null)
-        {
-            float elapsedTime = 0f;
-            
-            Vector3 startPos = gameplayCamera.transform.position;
-            Quaternion startRot = gameplayCamera.transform.rotation;
-            
-            Vector3 endPos = menuCamera.transform.position;
-            Quaternion endRot = menuCamera.transform.rotation;
-            
-            // Switch to menu camera for transition
-            gameplayCamera.enabled = false;
-            menuCamera.enabled = true;
-            
-            while (elapsedTime < transitionDuration)
-            {
-                float progress = elapsedTime / transitionDuration;
-                progress = Mathf.SmoothStep(0f, 1f, progress);
-                
-                menuCamera.transform.position = Vector3.Lerp(startPos, endPos, progress);
-                menuCamera.transform.rotation = Quaternion.Lerp(startRot, endRot, progress);
-                
-                elapsedTime += Time.deltaTime;
-                yield return null;
-            }
-        }
-        
-        // Show main menu UI
-        if (mainMenuPanel != null)
-            mainMenuPanel.SetActive(true);
-            
-        // Show cursor
-        Cursor.lockState = CursorLockMode.None;
-        Cursor.visible = true;
-        
-        isInMenu = true;
-        isTransitioning = false;
-    }
-    
-    void Update()
-    {
-        // ESC key untuk pause/menu (hanya jika tidak sedang transisi dan tidak di menu)
-        if (Input.GetKeyDown(KeyCode.Escape) && !isTransitioning && !isInMenu)
-        {
-            // Ini bisa dikembangkan untuk pause menu
-            ReturnToMainMenu();
         }
     }
 }

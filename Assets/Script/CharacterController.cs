@@ -11,6 +11,7 @@ public class CharacterController : MonoBehaviour
     [Header("Camera Settings")]
     public CinemachineCamera fpsCamera;
     public CinemachineCamera thirdPersonCamera;
+    public CinemachineCamera freeLookCamera;  // New Cinemachine Camera with Orbital Follow
     public float thirdPersonDistance = 5f;
     public float thirdPersonHeight = 2f;
     public float cameraTransitionSpeed = 5f;
@@ -23,8 +24,10 @@ public class CharacterController : MonoBehaviour
     private Rigidbody rb;
     private bool isGrounded;
     private float xRotation = 0f;
-    private bool isFirstPerson = false;
+    public bool isFirstPerson = false;
     private Vector3 thirdPersonOffset;
+
+    public GameObject playerModel;
     
     [Header("Game State")]
     public bool canMove = true;
@@ -81,12 +84,24 @@ public class CharacterController : MonoBehaviour
         bool isRunning = Input.GetKey(KeyCode.LeftShift);
         float currentSpeed = isRunning ? runSpeed : walkSpeed;
         
-        // Calculate movement direction relative to where player is looking
-        Vector3 direction = transform.right * horizontal + transform.forward * vertical;
+        // Get camera direction for relative movement
+        Vector3 cameraForward = GetCameraForward();
+        Vector3 cameraRight = GetCameraRight();
+        
+        // Calculate movement direction relative to camera
+        Vector3 direction = (cameraRight * horizontal + cameraForward * vertical).normalized;
         
         // Apply movement
         Vector3 moveVelocity = direction * currentSpeed;
         rb.linearVelocity = new Vector3(moveVelocity.x, rb.linearVelocity.y, moveVelocity.z);
+        
+        // Rotate player to face movement direction (optional)
+        if (direction.magnitude > 0.1f && !isFirstPerson)
+        {
+            // Smoothly rotate player to face movement direction
+            Quaternion targetRotation = Quaternion.LookRotation(direction);
+            playerModel.transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, 10f * Time.deltaTime);
+        }
     }
     
     void HandleMouseLook()
@@ -107,13 +122,78 @@ public class CharacterController : MonoBehaviour
         }
         else
         {
-            // Third Person Mode - Only rotate the body horizontally
-            transform.Rotate(Vector3.up * mouseX);
+            // Third Person Mode - FreeLook camera handles mouse input automatically
+            // No manual mouse handling needed for FreeLook camera
             
-            // Camera follows smoothly
-            xRotation -= mouseY;
-            xRotation = Mathf.Clamp(xRotation, -30f, 60f);
+            // Optional: Still rotate character based on camera direction during movement
+            // This is now handled in HandleMovement()
         }
+    }
+    
+    // Helper methods to get camera direction
+    Vector3 GetCameraForward()
+    {
+        if (isFirstPerson && fpsCamera != null)
+        {
+            return fpsCamera.transform.forward;
+        }
+        else if (freeLookCamera != null)
+        {
+            // For new Cinemachine, use the camera transform directly
+            // The OrbitalFollow component handles the orbital movement
+            Vector3 forward = freeLookCamera.transform.forward;
+            forward.y = 0; // Remove vertical component for ground movement
+            return forward.normalized;
+        }
+        else if (thirdPersonCamera != null)
+        {
+            Vector3 forward = thirdPersonCamera.transform.forward;
+            forward.y = 0;
+            return forward.normalized;
+        }
+        
+        // Fallback to world forward
+        return Vector3.forward;
+    }
+    
+    Vector3 GetCameraRight()
+    {
+        if (isFirstPerson && fpsCamera != null)
+        {
+            return fpsCamera.transform.right;
+        }
+        else if (freeLookCamera != null)
+        {
+            // For new Cinemachine, use the camera transform directly
+            Vector3 right = freeLookCamera.transform.right;
+            right.y = 0; // Keep it horizontal
+            return right.normalized;
+        }
+        else if (thirdPersonCamera != null)
+        {
+            Vector3 right = thirdPersonCamera.transform.right;
+            right.y = 0;
+            return right.normalized;
+        }
+        
+        // Fallback to world right
+        return Vector3.right;
+    }
+    
+    // Optional: Get camera input values for more precise control
+    Vector2 GetCameraInput()
+    {
+        if (freeLookCamera != null)
+        {
+            // Get input from Input Axis Controller if available
+            var inputAxisController = freeLookCamera.GetComponent<CinemachineInputAxisController>();
+            if (inputAxisController != null)
+            {
+                // Access input values if needed for advanced camera control
+                return new Vector2(Input.GetAxis("Mouse X"), Input.GetAxis("Mouse Y"));
+            }
+        }
+        return Vector2.zero;
     }
     
     void HandleJump()
@@ -132,9 +212,34 @@ public class CharacterController : MonoBehaviour
         
         if (thirdPersonCamera == null)
             thirdPersonCamera = transform.Find("TPCamera")?.GetComponent<CinemachineCamera>();
+            
+        // Manual assignment is recommended for FreeLook camera
+        // Auto-detection as fallback
+        if (freeLookCamera == null)
+        {
+            // Find FreeLook camera by name or tag
+            GameObject freeLookObj = GameObject.Find("FreeLook Camera");
+            if (freeLookObj != null)
+                freeLookCamera = freeLookObj.GetComponent<CinemachineCamera>();
+                
+            // Or find by CinemachineOrbitalFollow component
+            if (freeLookCamera == null)
+            {
+                CinemachineOrbitalFollow orbitalFollow = FindObjectOfType<CinemachineOrbitalFollow>();
+                if (orbitalFollow != null)
+                    freeLookCamera = orbitalFollow.GetComponent<CinemachineCamera>();
+            }
+        }
         
-        // Set initial camera state
-        SwitchToFPS();
+        // Set initial camera state - prioritize FreeLook if available
+        if (freeLookCamera != null)
+        {
+            SwitchToFreeLook();
+        }
+        else
+        {
+            SwitchToThirdPerson();
+        }
     }
     
     void HandleCameraSwitch()
@@ -144,7 +249,10 @@ public class CharacterController : MonoBehaviour
         {
             if (isFirstPerson)
             {
-                SwitchToThirdPerson();
+                if (freeLookCamera != null)
+                    SwitchToFreeLook();
+                else
+                    SwitchToThirdPerson();
             }
             else
             {
@@ -162,6 +270,9 @@ public class CharacterController : MonoBehaviour
             
         if (thirdPersonCamera != null)
             thirdPersonCamera.enabled = false;
+            
+        if (freeLookCamera != null)
+            freeLookCamera.enabled = false;
     }
     
     void SwitchToThirdPerson()
@@ -173,6 +284,23 @@ public class CharacterController : MonoBehaviour
             
         if (thirdPersonCamera != null)
             thirdPersonCamera.enabled = true;
+            
+        if (freeLookCamera != null)
+            freeLookCamera.enabled = false;
+    }
+    
+    void SwitchToFreeLook()
+    {
+        isFirstPerson = false;
+        
+        if (fpsCamera != null)
+            fpsCamera.enabled = false;
+            
+        if (thirdPersonCamera != null)
+            thirdPersonCamera.enabled = false;
+            
+        if (freeLookCamera != null)
+            freeLookCamera.enabled = true;
     }
     
     void UpdateThirdPersonCamera()

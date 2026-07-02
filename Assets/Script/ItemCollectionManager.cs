@@ -112,6 +112,15 @@ public class ItemCollectionManager : MonoBehaviour
         {
             collectionHUD.ShowCompletionMessage("All crystals collected! Well done!", 3f);
         }
+        
+        // Stop game timer when task completes
+        if (GameTimer.Instance != null)
+        {
+            GameTimer.Instance.CompleteGame();
+        }
+        
+        // Show win panel automatically (WinPanelManager will subscribe to OnTaskCompleted)
+        Debug.Log("Win condition triggered - showing victory screen!");
     }
     
     void UpdateHUD()
