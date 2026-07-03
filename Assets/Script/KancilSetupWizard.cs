@@ -224,20 +224,20 @@ public class KancilSetupWizard : MonoBehaviour
     
     private RuntimeAnimatorController FindKancilAnimatorController()
     {
-        // Cari di folder Animation
-        string[] guids = UnityEditor.AssetDatabase.FindAssets("t:AnimatorController", 
-            new[] { "Assets/3D MOdel/Character/Animation" });
+        // // Cari di folder Animation
+        // string[] guids = UnityEditor.AssetDatabase.FindAssets("t:AnimatorController", 
+        //     new[] { "Assets/3D MOdel/Character/Animation" });
             
-        foreach (string guid in guids)
-        {
-            string path = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
-            RuntimeAnimatorController controller = UnityEditor.AssetDatabase.LoadAssetAtPath<RuntimeAnimatorController>(path);
+        // foreach (string guid in guids)
+        // {
+        //     string path = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
+        //     RuntimeAnimatorController controller = UnityEditor.AssetDatabase.LoadAssetAtPath<RuntimeAnimatorController>(path);
             
-            if (controller != null)
-            {
-                return controller;
-            }
-        }
+        //     if (controller != null)
+        //     {
+        //         return controller;
+        //     }
+        // }
         
         return null;
     }
