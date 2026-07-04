@@ -19,12 +19,14 @@ public class RockCollisionHandler : MonoBehaviour
     [SerializeField] private float minimumVelocity = 1f; // Minimum velocity untuk damage
     [SerializeField] private bool debugCollisions = true;
     
+    public bool isNotRock = false;
     private AudioSource audioSource;
     private Rigidbody rockRigidbody;
     private bool hasHitPlayer = false;
     
     void Start()
     {
+        if(isNotRock == true) return;
         InitializeRock();
     }
     

@@ -7559,6 +7559,81 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 416096, guid: 2394d7d557201f048b00c84246231eb0, type: 3}
   m_PrefabInstance: {fileID: 375534692}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &378242736
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 378242740}
+  - component: {fileID: 378242737}
+  - component: {fileID: 378242741}
+  m_Layer: 0
+  m_Name: ALLGroundDamage
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!65 &378242737
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 378242736}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1, y: 1, z: 1}
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!4 &378242740
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 378242736}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -41.1236, y: -8, z: -523}
+  m_LocalScale: {x: 1086.202, y: 1, z: 423.09714}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &378242741
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 378242736}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e5bcb4b03da3569449e3bb853719a0ea, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  damageAmount: 100
+  destroyOnHit: 0
+  destroyDelay: 0.1
+  hitEffect: {fileID: 0}
+  hitSound: {fileID: 0}
+  soundVolume: 1
+  minimumVelocity: 1
+  debugCollisions: 1
+  isNotRock: 1
 --- !u!1 &383955957 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 104598, guid: 2394d7d557201f048b00c84246231eb0, type: 3}
@@ -11444,7 +11519,7 @@ MonoBehaviour:
       prosperity, unity, and respect for the blessings of the land.
     itemIcon: {fileID: 21300000, guid: 2c5fefa59f72ddb499438d18e9cb1385, type: 3}
     itemPrefab: {fileID: 4563803603248931211, guid: 569a2e15dbb7f114b84035fab997910f, type: 3}
-    spawnPosition: {fileID: 1513705438}
+    spawnPosition: {fileID: 1647342551}
     isActive: 0
     isCollected: 0
     questDescriptionForThisItem: A sacred relic lies somewhere among the rice fields.
@@ -41663,7 +41738,7 @@ BoxCollider:
   m_LayerOverridePriority: 0
   m_IsTrigger: 1
   m_ProvidesContacts: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Size: {x: 0.01569307, y: 0.008564353, z: 0.020000003}
   m_Center: {x: -0.0000009536743, y: 0.00000023841858, z: 0.00000011920929}
@@ -48108,6 +48183,18 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 2130528235}
     m_Modifications:
+    - target: {fileID: 5132492685667826698, guid: ebcfdfe466f001e43951f7649a33b247, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7799596682839942528, guid: ebcfdfe466f001e43951f7649a33b247, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8214216855064926968, guid: ebcfdfe466f001e43951f7649a33b247, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8592102467369616469, guid: ebcfdfe466f001e43951f7649a33b247, type: 3}
       propertyPath: m_Name
       value: Lotus
@@ -48174,6 +48261,10 @@ PrefabInstance:
       value: 0.0017
       objectReference: {fileID: 0}
     - target: {fileID: 1856798329359392509, guid: 569a2e15dbb7f114b84035fab997910f, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2618033127836303454, guid: 569a2e15dbb7f114b84035fab997910f, type: 3}
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
@@ -48344,6 +48435,10 @@ PrefabInstance:
       value: Bakul Nasi
       objectReference: {fileID: 0}
     - target: {fileID: 5176900604954527021, guid: c1e2a60e8e71d4440a4f45f8e5ebb163, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5176900604954527021, guid: c1e2a60e8e71d4440a4f45f8e5ebb163, type: 3}
       propertyPath: itemPrefab
       value: 
       objectReference: {fileID: 4831339013148589529, guid: c1e2a60e8e71d4440a4f45f8e5ebb163, type: 3}
@@ -48403,6 +48498,10 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 6344623323159895052, guid: c1e2a60e8e71d4440a4f45f8e5ebb163, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6814203010285571981, guid: c1e2a60e8e71d4440a4f45f8e5ebb163, type: 3}
       propertyPath: m_Intensity
       value: 27.3
@@ -48440,3 +48539,4 @@ SceneRoots:
   - {fileID: 2111145151}
   - {fileID: 185187790}
   - {fileID: 1838017495}
+  - {fileID: 378242740}
