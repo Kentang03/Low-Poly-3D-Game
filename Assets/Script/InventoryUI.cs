@@ -7,6 +7,7 @@ public class InventoryUI : MonoBehaviour
 {
     [Header("UI References")]
     public Transform inventoryPanel;
+    public Transform itemContainer;
     public GameObject inventorySlotPrefab;
     public GameObject collectedItemDisplayPrefab; // Prefab untuk menampilkan item di pojok kanan atas
     public Transform collectedItemsContainer; // Container di pojok kanan atas
@@ -79,7 +80,7 @@ public class InventoryUI : MonoBehaviour
         // Create new slots
         foreach (InventoryItem item in items)
         {
-            GameObject slotObj = Instantiate(inventorySlotPrefab, inventoryPanel);
+            GameObject slotObj = Instantiate(inventorySlotPrefab, itemContainer);
             InventorySlot slot = slotObj.GetComponent<InventorySlot>();
             
             if (slot != null)
