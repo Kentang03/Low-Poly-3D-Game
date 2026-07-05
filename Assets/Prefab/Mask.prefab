@@ -163,6 +163,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 0a5720984eaf3a84dbdeee033f0ddacb, type: 3}
       insertIndex: -1
       addedObject: {fileID: 5176900604954527021}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 0a5720984eaf3a84dbdeee033f0ddacb, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8694167405969730551}
   m_SourcePrefab: {fileID: 100100000, guid: 0a5720984eaf3a84dbdeee033f0ddacb, type: 3}
 --- !u!1 &4831339013148589529 stripped
 GameObject:
@@ -185,7 +188,7 @@ MonoBehaviour:
   itemDescription: A mysterious crystal
   itemIcon: {fileID: 21300000, guid: d49c25c60e136a24c80c58f18ca3bba2, type: 3}
   canBePlaced: 0
-  itemPrefab: {fileID: 0}
+  itemPrefab: {fileID: 4831339013148589529}
   itemValue: 1
   isCollected: 0
   rotationSpeed: 50
@@ -193,6 +196,27 @@ MonoBehaviour:
   bobHeight: 0.5
   collectEffect: {fileID: 0}
   collectSound: {fileID: 0}
+--- !u!65 &8694167405969730551
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4831339013148589529}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.01569307, y: 0.008564353, z: 0.020000003}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!4 &5208287146888488803 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 0a5720984eaf3a84dbdeee033f0ddacb, type: 3}
