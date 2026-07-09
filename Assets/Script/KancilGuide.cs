@@ -44,8 +44,6 @@ public class KancilGuide : MonoBehaviour
     // Private variables
     private NavMeshAgent navAgent;
     private int currentCheckpointIndex = 0;
-    private bool isWaiting = false;
-    private bool isMoving = false;
     private bool playerNearby = false;
     private KancilState currentState = KancilState.Idle;
     
