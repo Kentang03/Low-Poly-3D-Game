@@ -18,7 +18,6 @@ public class DeathManager : MonoBehaviour
     [SerializeField] private GameObject deathEffect;
     [SerializeField] private AudioClip deathSound;
     [SerializeField] private float deathSoundVolume = 1f;
-    [SerializeField] private float screenFadeTime = 1f;
     
     [Header("Respawn Settings")]
     [SerializeField] private bool autoRespawn = true;

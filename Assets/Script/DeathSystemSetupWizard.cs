@@ -23,7 +23,6 @@ public class DeathSystemSetupWizard : MonoBehaviour
     [SerializeField] private float checkpointActivationDistance = 5f;
     [SerializeField] private float respawnDelay = 3f;
     [SerializeField] private bool enableAutoRespawn = true;
-    [SerializeField] private bool enableDeathUI = true;
     
     [Header("Step 4: Testing Setup")]
     [SerializeField] private bool includeTestingTools = true;
