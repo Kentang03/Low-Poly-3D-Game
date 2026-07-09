@@ -1,4 +1,7 @@
 using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 public class CutsceneSystemInstaller : MonoBehaviour
 {
@@ -192,8 +195,10 @@ public class CutsceneSystemInstaller : MonoBehaviour
 
         Debug.Log("Sample cutscene created! Walk to the trigger and press E to test.");
         
-        // Select the cutscene in hierarchy
+        // Select the cutscene in hierarchy (only in editor)
+        #if UNITY_EDITOR
         UnityEditor.Selection.activeGameObject = cutsceneGO;
+        #endif
     }
 
     private void OnValidate()
