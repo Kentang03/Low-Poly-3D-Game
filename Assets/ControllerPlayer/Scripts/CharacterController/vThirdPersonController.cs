@@ -6,15 +6,25 @@ namespace Invector.vCharacterController
     {
         public virtual void ControlAnimatorRootMotion()
         {
-            if (!this.enabled) return;
+            if (!this.enabled || stopMove) return; // Tambahkan check stopMove
+
+            // Hanya apply root motion jika ada input atau sedang bergerak
+            if (inputSmooth == Vector3.zero && input == Vector3.zero)
+            {
+                // Jika benar-benar diam, jangan ubah position dan rotation dari root motion
+                // Biarkan animator handle idle state secara natural tanpa mempengaruhi transform
+                return;
+            }
 
             if (inputSmooth == Vector3.zero)
             {
                 transform.position = animator.rootPosition;
-                transform.rotation = animator.rootRotation;
+                // Jangan ubah rotation jika ada collision (stopMove = true)
+                if (!stopMove)
+                    transform.rotation = animator.rootRotation;
             }
 
-            if (useRootMotion)
+            if (useRootMotion && !stopMove) // Tambahkan check stopMove
                 MoveCharacter(moveDirection);
         }
 
@@ -40,9 +50,21 @@ namespace Invector.vCharacterController
 
         public virtual void ControlRotationType()
         {
-            if (lockRotation) return;
+            if (lockRotation || stopMove) return; // Tambahkan check stopMove untuk mencegah rotasi saat collision
 
-            bool validInput = input != Vector3.zero || (isStrafing ? strafeSpeed.rotateWithCamera : freeSpeed.rotateWithCamera);
+            // Langsung reset inputSmooth jika tidak ada input untuk menghentikan rotasi lebih cepat
+            if (input == Vector3.zero)
+            {
+                inputSmooth = Vector3.zero;
+                return; // Langsung return jika tidak ada input
+            }
+
+            // Hanya rotate jika ada input aktual dari player
+            bool hasActiveInput = input != Vector3.zero;
+            bool shouldRotateWithCamera = (isStrafing ? strafeSpeed.rotateWithCamera : freeSpeed.rotateWithCamera) && rotateTarget;
+            
+            // Validasi input - hanya rotate jika benar-benar ada input
+            bool validInput = hasActiveInput || (shouldRotateWithCamera && hasActiveInput);
 
             if (validInput)
             {
@@ -58,7 +80,9 @@ namespace Invector.vCharacterController
         {
             if (input.magnitude <= 0.01)
             {
-                moveDirection = Vector3.Lerp(moveDirection, Vector3.zero, (isStrafing ? strafeSpeed.movementSmooth : freeSpeed.movementSmooth) * Time.deltaTime);
+                // Langsung set ke zero untuk menghentikan movement lebih cepat
+                moveDirection = Vector3.zero;
+                inputSmooth = Vector3.zero;
                 return;
             }
 

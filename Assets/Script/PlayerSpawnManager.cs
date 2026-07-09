@@ -196,7 +196,7 @@ public class PlayerSpawnManager : MonoBehaviour
             Rigidbody rb = playerController.GetComponent<Rigidbody>();
             if (rb != null)
             {
-                rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
+                rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationY | RigidbodyConstraints.FreezeRotationZ;
                 rb.isKinematic = false;
             }
         }

@@ -214,7 +214,7 @@ public class GameSceneValidator : MonoBehaviour
             // Check rigidbody
             if (rb != null)
             {
-                bool properConstraints = rb.constraints == (RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ);
+                bool properConstraints = rb.constraints == (RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationY | RigidbodyConstraints.FreezeRotationZ);
                 bool notKinematic = !rb.isKinematic;
                 
                 if (properConstraints && notKinematic)

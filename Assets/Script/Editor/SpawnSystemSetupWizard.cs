@@ -246,7 +246,7 @@ public class SpawnSystemSetupWizard : EditorWindow
         else
         {
             // Set proper rigidbody constraints
-            rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
+            rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationY | RigidbodyConstraints.FreezeRotationZ;
         }
         
         // Ensure player has Player tag

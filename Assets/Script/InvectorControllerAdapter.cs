@@ -390,7 +390,7 @@ public class InvectorControllerAdapter : MonoBehaviour
         if (rb != null)
         {
             rb.isKinematic = false;
-            rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
+            rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationY | RigidbodyConstraints.FreezeRotationZ;
         }
         
         // 8. Re-enable controller

@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using UnityEngine.EventSystems;
 using System.Collections;
 
 public class MainMenuManager : MonoBehaviour
@@ -96,34 +97,85 @@ public class MainMenuManager : MonoBehaviour
     
     void SetupButtonListeners()
     {
+        // Setup click listeners
         if (playButton != null)
+        {
             playButton.onClick.AddListener(StartGame);
+            AddHoverSound(playButton);
+        }
             
         if (settingsButton != null)
+        {
             settingsButton.onClick.AddListener(OpenSettings);
+            AddHoverSound(settingsButton);
+        }
             
         if (creditsButton != null)
+        {
             creditsButton.onClick.AddListener(OpenCredits);
+            AddHoverSound(creditsButton);
+        }
             
         if (exitButton != null)
+        {
             exitButton.onClick.AddListener(ExitGame);
+            AddHoverSound(exitButton);
+        }
             
         if (backFromSettingsButton != null)
+        {
             backFromSettingsButton.onClick.AddListener(CloseSettings);
+            AddHoverSound(backFromSettingsButton);
+        }
             
         // Settings sub-panel navigation buttons
         if (audioSettingsButton != null)
+        {
             audioSettingsButton.onClick.AddListener(ShowAudioSettings);
+            AddHoverSound(audioSettingsButton);
+        }
             
         if (controlsButton != null)
+        {
             controlsButton.onClick.AddListener(ShowControlsSettings);
+            AddHoverSound(controlsButton);
+        }
             
         if (backFromCreditsButton != null)
+        {
             backFromCreditsButton.onClick.AddListener(CloseCredits);
+            AddHoverSound(backFromCreditsButton);
+        }
             
         // Deprecated controls panel support (for backward compatibility)
         if (backFromControlsButton != null)
+        {
             backFromControlsButton.onClick.AddListener(CloseControls);
+            AddHoverSound(backFromControlsButton);
+        }
+    }
+    
+    /// <summary>
+    /// Add hover sound to a button using EventTrigger
+    /// </summary>
+    /// <param name="button">Button to add hover sound to</param>
+    private void AddHoverSound(Button button)
+    {
+        if (button == null) return;
+        
+        // Get or add EventTrigger component
+        var eventTrigger = button.GetComponent<UnityEngine.EventSystems.EventTrigger>();
+        if (eventTrigger == null)
+        {
+            eventTrigger = button.gameObject.AddComponent<UnityEngine.EventSystems.EventTrigger>();
+        }
+        
+        // Create hover entry
+        var hoverEntry = new UnityEngine.EventSystems.EventTrigger.Entry();
+        hoverEntry.eventID = UnityEngine.EventSystems.EventTriggerType.PointerEnter;
+        hoverEntry.callback.AddListener((data) => { PlayHoverSound(); });
+        
+        eventTrigger.triggers.Add(hoverEntry);
     }
     
     public void StartGame()
@@ -364,6 +416,14 @@ public class MainMenuManager : MonoBehaviour
         else if (buttonClickSound != null)
         {
             buttonClickSound.Play();
+        }
+    }
+    
+    void PlayHoverSound()
+    {
+        if (audioManager != null)
+        {
+            audioManager.PlayButtonHover();
         }
     }
 }

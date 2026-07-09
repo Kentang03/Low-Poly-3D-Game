@@ -335,7 +335,7 @@ public class CharacterController : MonoBehaviour
     public void UnfreezeCharacter()
     {
         SetCanMove(true);
-        rb.constraints = RigidbodyConstraints.FreezeRotation;
+        rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationY | RigidbodyConstraints.FreezeRotationZ;
         
         // Lock cursor saat character bisa bergerak (gameplay state)
         Cursor.lockState = CursorLockMode.Locked;

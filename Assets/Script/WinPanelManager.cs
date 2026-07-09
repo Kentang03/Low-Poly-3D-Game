@@ -134,9 +134,17 @@ public class WinPanelManager : MonoBehaviour
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
         
-        // Get data untuk display
+        // Get data untuk display - priority: QuestWinIntegration > direct systems
+        QuestWinIntegration questWinIntegration = QuestWinIntegration.Instance;
         ItemCollectionManager collectionManager = ItemCollectionManager.Instance;
         GameTimer gameTimer = GameTimer.Instance;
+        
+        // Get quest completion data jika ada integration
+        QuestCompletionData questData = null;
+        if (questWinIntegration != null)
+        {
+            questData = questWinIntegration.GetQuestCompletionData();
+        }
         
         // Show panel
         winPanel.SetActive(true);
@@ -148,10 +156,10 @@ public class WinPanelManager : MonoBehaviour
         }
         
         // Start animation sequence
-        StartCoroutine(AnimateWinPanel(collectionManager, gameTimer));
+        StartCoroutine(AnimateWinPanel(questData, collectionManager, gameTimer));
     }
     
-    IEnumerator AnimateWinPanel(ItemCollectionManager collectionManager, GameTimer gameTimer)
+    IEnumerator AnimateWinPanel(QuestCompletionData questData, ItemCollectionManager collectionManager, GameTimer gameTimer)
     {
         // Reset all UI elements alpha
         SetUIElementsAlpha(0f);
@@ -171,18 +179,67 @@ public class WinPanelManager : MonoBehaviour
         // Animate statistics
         yield return new WaitForSecondsRealtime(statsAnimationDelay - titleAnimationDelay);
         
-        // Items collected info
-        if (itemsCollectedText != null && collectionManager != null)
+        // Items collected info - support untuk QuestSystem dan ItemCollectionManager
+        if (itemsCollectedText != null)
         {
-            string itemInfo = $"Items Collected: {collectionManager.currentItemCount}/{collectionManager.targetItemCount} {collectionManager.itemName}";
+            string itemInfo = "";
+            
+            // Priority: QuestWinIntegration data > QuestSystem > ItemCollectionManager
+            if (questData != null && !string.IsNullOrEmpty(questData.questName))
+            {
+                // Gunakan data dari QuestWinIntegration
+                itemInfo = $"Quest: {questData.questName}\nItems Collected: {questData.collectedItems}/{questData.totalItems}";
+            }
+            else
+            {
+                // Fallback ke sistem yang tersedia
+                QuestSystem questSystem = QuestSystem.Instance;
+                if (questSystem != null)
+                {
+                    // Gunakan data dari QuestSystem
+                    int totalItems = questSystem.questItems.Count;
+                    int collectedItems = totalItems; // Jika quest completed, berarti semua item sudah dikumpulkan
+                    string questName = questSystem.questName;
+                    
+                    itemInfo = $"Quest: {questName}\nItems Collected: {collectedItems}/{totalItems}";
+                }
+                else if (collectionManager != null)
+                {
+                    // Fallback ke ItemCollectionManager (backward compatibility)
+                    itemInfo = $"Items Collected: {collectionManager.currentItemCount}/{collectionManager.targetItemCount} {collectionManager.itemName}";
+                }
+                else
+                {
+                    // Default message jika tidak ada sistem collection yang aktif
+                    itemInfo = "Quest Completed Successfully!";
+                }
+            }
+            
             itemsCollectedText.text = itemInfo;
             yield return StartCoroutine(AnimateTextElement(itemsCollectedText));
         }
         
-        // Time completed info
-        if (timeCompletedText != null && gameTimer != null)
+        // Time completed info - Priority: QuestWinIntegration > GameTimer
+        if (timeCompletedText != null)
         {
-            string timeInfo = $"Time: {gameTimer.GetTimeForStats()}";
+            string timeInfo = "";
+            
+            if (questData != null && !string.IsNullOrEmpty(questData.timeForStats))
+            {
+                // Gunakan data dari QuestWinIntegration
+                timeInfo = $"Completion Time: {questData.timeForStats}";
+            }
+            else if (gameTimer != null)
+            {
+                // Fallback ke GameTimer langsung
+                timeInfo = $"Completion Time: {gameTimer.GetTimeForStats()}";
+            }
+            else
+            {
+                // Default jika tidak ada timer
+                timeInfo = "Time: Not tracked";
+            }
+            
             timeCompletedText.text = timeInfo;
             yield return StartCoroutine(AnimateTextElement(timeCompletedText));
         }
@@ -341,8 +398,10 @@ public class WinPanelManager : MonoBehaviour
     }
     
     // Integration dengan ItemCollectionManager
+    // Note: QuestSystem integration sekarang ditangani oleh QuestWinIntegration
     void OnEnable()
     {
+        // Subscribe ke ItemCollectionManager (backward compatibility)
         if (ItemCollectionManager.Instance != null)
         {
             ItemCollectionManager.Instance.OnTaskCompleted.AddListener(ShowWinPanel);
@@ -351,6 +410,7 @@ public class WinPanelManager : MonoBehaviour
     
     void OnDisable()
     {
+        // Unsubscribe dari ItemCollectionManager
         if (ItemCollectionManager.Instance != null)
         {
             ItemCollectionManager.Instance.OnTaskCompleted.RemoveListener(ShowWinPanel);

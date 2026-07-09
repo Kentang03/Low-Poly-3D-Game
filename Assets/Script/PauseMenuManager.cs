@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using UnityEngine.EventSystems;
 using Invector.vCharacterController; // Add Invector namespace
 
 public class PauseMenuManager : MonoBehaviour
@@ -85,20 +86,59 @@ public class PauseMenuManager : MonoBehaviour
     
     void SetupButtonListeners()
     {
+        // Setup click listeners and hover sounds
         if (resumeButton != null)
+        {
             resumeButton.onClick.AddListener(ResumeGame);
+            AddHoverSound(resumeButton);
+        }
             
         if (settingsButton != null)
+        {
             settingsButton.onClick.AddListener(OpenPauseSettings);
+            AddHoverSound(settingsButton);
+        }
             
         if (mainMenuButton != null)
+        {
             mainMenuButton.onClick.AddListener(GoToMainMenu);
+            AddHoverSound(mainMenuButton);
+        }
             
         if (quitButton != null)
+        {
             quitButton.onClick.AddListener(QuitGame);
+            AddHoverSound(quitButton);
+        }
             
         if (backFromSettingsButton != null)
+        {
             backFromSettingsButton.onClick.AddListener(ClosePauseSettings);
+            AddHoverSound(backFromSettingsButton);
+        }
+    }
+    
+    /// <summary>
+    /// Add hover sound to a button using EventTrigger
+    /// </summary>
+    /// <param name="button">Button to add hover sound to</param>
+    private void AddHoverSound(Button button)
+    {
+        if (button == null) return;
+        
+        // Get or add EventTrigger component
+        var eventTrigger = button.GetComponent<UnityEngine.EventSystems.EventTrigger>();
+        if (eventTrigger == null)
+        {
+            eventTrigger = button.gameObject.AddComponent<UnityEngine.EventSystems.EventTrigger>();
+        }
+        
+        // Create hover entry
+        var hoverEntry = new UnityEngine.EventSystems.EventTrigger.Entry();
+        hoverEntry.eventID = UnityEngine.EventSystems.EventTriggerType.PointerEnter;
+        hoverEntry.callback.AddListener((data) => { PlayHoverSound(); });
+        
+        eventTrigger.triggers.Add(hoverEntry);
     }
     
     public void PauseGame()
@@ -283,5 +323,16 @@ public class PauseMenuManager : MonoBehaviour
         }
         
         Debug.LogWarning("No suitable player controller found for movement control!");
+    }
+    
+    /// <summary>
+    /// Play hover sound when button is hovered
+    /// </summary>
+    void PlayHoverSound()
+    {
+        if (audioManager != null)
+        {
+            audioManager.PlayButtonHover();
+        }
     }
 }

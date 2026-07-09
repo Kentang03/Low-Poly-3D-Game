@@ -39,6 +39,7 @@ public class FadeTransition : MonoBehaviour
     private void SetupFadeImage()
     {
         // Create Canvas if doesn't exist
+        fadeImage.gameObject.SetActive(true);
         Canvas canvas = GetComponent<Canvas>();
         if (canvas == null)
         {
@@ -117,6 +118,7 @@ public class FadeTransition : MonoBehaviour
         }
 
         SetFadeAlpha(0f);
+         fadeImage.gameObject.SetActive(false);
     }
 
     /// <summary>

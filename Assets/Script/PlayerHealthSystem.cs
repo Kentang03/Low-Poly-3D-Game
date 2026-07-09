@@ -364,7 +364,7 @@ public class PlayerHealthSystem : MonoBehaviour
         if (rb != null)
         {
             rb.isKinematic = false;
-            rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
+            rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationY | RigidbodyConstraints.FreezeRotationZ;
         }
         
         // Re-enable controller

@@ -151,6 +151,15 @@ namespace Invector.vCharacterController
             CheckSlopeLimit();
             ControlJumpBehaviour();
             AirControl();
+            
+            // Langsung hentikan rigidbody horizontal velocity jika tidak ada input
+            if (input == Vector3.zero && isGrounded && !isJumping)
+            {
+                Vector3 velocity = _rigidbody.linearVelocity;
+                velocity.x = 0;
+                velocity.z = 0;
+                _rigidbody.linearVelocity = velocity;
+            }
         }
 
         #region Locomotion
@@ -165,10 +174,17 @@ namespace Invector.vCharacterController
 
         public virtual void MoveCharacter(Vector3 _direction)
         {
-            // calculate input smooth
-            inputSmooth = Vector3.Lerp(inputSmooth, input, (isStrafing ? strafeSpeed.movementSmooth : freeSpeed.movementSmooth) * Time.deltaTime);
-
             if (!isGrounded || isJumping) return;
+
+            // Langsung set inputSmooth ke zero jika tidak ada input untuk menghentikan movement lebih cepat
+            if (input == Vector3.zero)
+            {
+                inputSmooth = Vector3.zero;
+                return;
+            }
+
+            // calculate input smooth hanya jika ada input
+            inputSmooth = Vector3.Lerp(inputSmooth, input, (isStrafing ? strafeSpeed.movementSmooth : freeSpeed.movementSmooth) * Time.deltaTime);
 
             _direction.y = 0;
             _direction.x = Mathf.Clamp(_direction.x, -1f, 1f);
@@ -187,17 +203,26 @@ namespace Invector.vCharacterController
 
         public virtual void CheckSlopeLimit()
         {
-            if (input.sqrMagnitude < 0.1) return;
+            if (input.sqrMagnitude < 0.1) 
+            {
+                stopMove = false; // Reset stopMove jika tidak ada input
+                return;
+            }
 
             RaycastHit hitinfo;
             var hitAngle = 0f;
 
-            if (Physics.Linecast(transform.position + Vector3.up * (_capsuleCollider.height * 0.5f), transform.position + moveDirection.normalized * (_capsuleCollider.radius + 0.2f), out hitinfo, groundLayer))
+            // Check collision di depan player
+            Vector3 castOrigin = transform.position + Vector3.up * (_capsuleCollider.height * 0.5f);
+            Vector3 castDirection = moveDirection.normalized;
+            float castDistance = _capsuleCollider.radius + 0.2f;
+
+            if (Physics.Linecast(castOrigin, castOrigin + castDirection * castDistance, out hitinfo, groundLayer))
             {
                 hitAngle = Vector3.Angle(Vector3.up, hitinfo.normal);
 
                 var targetPoint = hitinfo.point + moveDirection.normalized * _capsuleCollider.radius;
-                if ((hitAngle > slopeLimit) && Physics.Linecast(transform.position + Vector3.up * (_capsuleCollider.height * 0.5f), targetPoint, out hitinfo, groundLayer))
+                if ((hitAngle > slopeLimit) && Physics.Linecast(castOrigin, targetPoint, out hitinfo, groundLayer))
                 {
                     hitAngle = Vector3.Angle(Vector3.up, hitinfo.normal);
 
@@ -208,6 +233,18 @@ namespace Invector.vCharacterController
                     }
                 }
             }
+
+            // Additional wall collision check
+            if (Physics.SphereCast(castOrigin, _capsuleCollider.radius * 0.8f, castDirection, out hitinfo, castDistance, groundLayer))
+            {
+                hitAngle = Vector3.Angle(Vector3.up, hitinfo.normal);
+                if (hitAngle > 85f) // Vertical wall
+                {
+                    stopMove = true;
+                    return;
+                }
+            }
+
             stopMove = false;
         }
 
@@ -225,7 +262,15 @@ namespace Invector.vCharacterController
         public virtual void RotateToDirection(Vector3 direction, float rotationSpeed)
         {
             if (!jumpAndRotate && !isGrounded) return;
+            
+            // Langsung hentikan rotasi jika tidak ada input
+            if (input == Vector3.zero) return;
+            
             direction.y = 0f;
+            
+            // Pastikan direction tidak zero vector
+            if (direction.magnitude < 0.01f) return;
+            
             Vector3 desiredForward = Vector3.RotateTowards(transform.forward, direction.normalized, rotationSpeed * Time.deltaTime, .1f);
             Quaternion _newRotation = Quaternion.LookRotation(desiredForward);
             transform.rotation = _newRotation;
