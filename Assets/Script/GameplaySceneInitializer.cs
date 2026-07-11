@@ -103,7 +103,6 @@ public class GameplaySceneInitializer : MonoBehaviour
             // Remove any movement restrictions
             playerController.lockMovement = false;
             playerController.lockRotation = false;
-            // Note: stopMove is handled internally by Invector
             
             // Clear any existing input
             playerController.input = Vector3.zero;
@@ -183,7 +182,7 @@ public class GameplaySceneInitializer : MonoBehaviour
         bool hasInput = input != null;
         bool controllerEnabled = hasController && controller.enabled;
         bool inputEnabled = hasInput && input.enabled;
-        bool canMove = hasController && !controller.lockMovement && !controller.stopMove;
+        bool canMove = hasController && !controller.lockMovement;
         
         Debug.Log($"vThirdPersonController: {(hasController ? "✅" : "❌")}");
         Debug.Log($"vThirdPersonInput: {(hasInput ? "✅" : "❌")}");

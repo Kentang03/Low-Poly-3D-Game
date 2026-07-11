@@ -176,7 +176,6 @@ public class TestDeathSystem : MonoBehaviour
             {
                 Debug.Log($"   Rigidbody Constraints: {rb.constraints}");
                 Debug.Log($"   Is Grounded: {invectorController.isGrounded}");
-                Debug.Log($"   Can Move: {!invectorController.stopMove}");
             }
         }
         else

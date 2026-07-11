@@ -27,6 +27,7 @@ namespace Invector.vCharacterController
         {
             InitilizeController();
             InitializeTpCamera();
+            InitializeAudioController();
         }
 
         protected virtual void FixedUpdate()
@@ -68,6 +69,20 @@ namespace Invector.vCharacterController
                 {
                     tpCamera.SetMainTarget(this.transform);
                     tpCamera.Init();
+                }
+            }
+        }
+
+        protected virtual void InitializeAudioController()
+        {
+            if (cc != null)
+            {
+                // Get or add audio controller
+                cc.audioController = GetComponent<CharacterAudioController>();
+                if (cc.audioController == null)
+                {
+                    cc.audioController = gameObject.AddComponent<CharacterAudioController>();
+                    Debug.Log("CharacterAudioController automatically added to " + gameObject.name);
                 }
             }
         }
@@ -133,7 +148,7 @@ namespace Invector.vCharacterController
         /// <returns></returns>
         protected virtual bool JumpConditions()
         {
-            return cc.isGrounded && cc.GroundAngle() < cc.slopeLimit && !cc.isJumping && !cc.stopMove;
+            return cc.isGrounded && cc.GroundAngle() < cc.slopeLimit && !cc.isJumping;
         }
 
         /// <summary>

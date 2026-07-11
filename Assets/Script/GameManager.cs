@@ -250,7 +250,6 @@ public class GameManager : MonoBehaviour
             // Ensure no movement locks
             vThirdPersonController.lockMovement = false;
             vThirdPersonController.lockRotation = false;
-            // Note: stopMove is handled internally by Invector
             
             Debug.Log("Invector Third Person Controller ready for gameplay");
         }

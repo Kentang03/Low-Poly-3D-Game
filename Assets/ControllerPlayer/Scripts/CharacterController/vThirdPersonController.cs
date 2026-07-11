@@ -4,9 +4,14 @@ namespace Invector.vCharacterController
 {
     public class vThirdPersonController : vThirdPersonAnimator
     {
+        [Header("Audio")]
+        [Tooltip("Reference to the character audio controller")]
+        public CharacterAudioController audioController;
+        
+
         public virtual void ControlAnimatorRootMotion()
         {
-            if (!this.enabled || stopMove) return; // Tambahkan check stopMove
+            if (!this.enabled) return;
 
             // Hanya apply root motion jika ada input atau sedang bergerak
             if (inputSmooth == Vector3.zero && input == Vector3.zero)
@@ -19,12 +24,10 @@ namespace Invector.vCharacterController
             if (inputSmooth == Vector3.zero)
             {
                 transform.position = animator.rootPosition;
-                // Jangan ubah rotation jika ada collision (stopMove = true)
-                if (!stopMove)
-                    transform.rotation = animator.rootRotation;
+                transform.rotation = animator.rootRotation;
             }
 
-            if (useRootMotion && !stopMove) // Tambahkan check stopMove
+            if (useRootMotion)
                 MoveCharacter(moveDirection);
         }
 
@@ -50,7 +53,7 @@ namespace Invector.vCharacterController
 
         public virtual void ControlRotationType()
         {
-            if (lockRotation || stopMove) return; // Tambahkan check stopMove untuk mencegah rotasi saat collision
+            if (lockRotation) return;
 
             // Langsung reset inputSmooth jika tidak ada input untuk menghentikan rotasi lebih cepat
             if (input == Vector3.zero)
@@ -141,6 +144,12 @@ namespace Invector.vCharacterController
             // trigger jump behaviour
             jumpCounter = jumpTimer;
             isJumping = true;
+
+            // Play jump sound
+            if (audioController != null)
+            {
+                audioController.PlayJumpSound();
+            }
 
             // trigger jump animations
             if (input.sqrMagnitude < 0.1f)

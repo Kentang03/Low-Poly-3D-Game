@@ -182,7 +182,6 @@ public class PlayerSpawnManager : MonoBehaviour
             playerController.enabled = true;
             playerController.lockMovement = false;
             playerController.lockRotation = false;
-            // Note: stopMove is handled internally by Invector
         }
         
         if (playerInput != null)

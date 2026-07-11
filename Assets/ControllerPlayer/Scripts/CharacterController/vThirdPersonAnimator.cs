@@ -24,15 +24,15 @@ namespace Invector.vCharacterController
 
             if (isStrafing)
             {
-                animator.SetFloat(vAnimatorParameters.InputHorizontal, stopMove ? 0 : horizontalSpeed, strafeSpeed.animationSmooth, Time.deltaTime);
-                animator.SetFloat(vAnimatorParameters.InputVertical, stopMove ? 0 : verticalSpeed, strafeSpeed.animationSmooth, Time.deltaTime);
+                animator.SetFloat(vAnimatorParameters.InputHorizontal, horizontalSpeed, strafeSpeed.animationSmooth, Time.deltaTime);
+                animator.SetFloat(vAnimatorParameters.InputVertical, verticalSpeed, strafeSpeed.animationSmooth, Time.deltaTime);
             }
             else
             {
-                animator.SetFloat(vAnimatorParameters.InputVertical, stopMove ? 0 : verticalSpeed, freeSpeed.animationSmooth, Time.deltaTime);
+                animator.SetFloat(vAnimatorParameters.InputVertical, verticalSpeed, freeSpeed.animationSmooth, Time.deltaTime);
             }
 
-            animator.SetFloat(vAnimatorParameters.InputMagnitude, stopMove ? 0f : inputMagnitude, isStrafing ? strafeSpeed.animationSmooth : freeSpeed.animationSmooth, Time.deltaTime);
+            animator.SetFloat(vAnimatorParameters.InputMagnitude, inputMagnitude, isStrafing ? strafeSpeed.animationSmooth : freeSpeed.animationSmooth, Time.deltaTime);
         }
 
         public virtual void SetAnimatorMoveSpeed(vMovementSpeed speed)

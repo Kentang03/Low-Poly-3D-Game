@@ -82,7 +82,6 @@ namespace Invector.vCharacterController
         }
         internal bool isGrounded { get; set; }
         internal bool isSprinting { get; set; }
-        public bool stopMove { get; protected set; }
 
         internal float inputMagnitude;                      // sets the inputMagnitude to update the animations in the animator controller
         internal float verticalSpeed;                       // set the verticalSpeed based on the verticalInput
@@ -193,7 +192,7 @@ namespace Invector.vCharacterController
             if (_direction.magnitude > 1f)
                 _direction.Normalize();
 
-            Vector3 targetPosition = (useRootMotion ? animator.rootPosition : _rigidbody.position) + _direction * (stopMove ? 0 : moveSpeed) * Time.deltaTime;
+            Vector3 targetPosition = (useRootMotion ? animator.rootPosition : _rigidbody.position) + _direction * moveSpeed * Time.deltaTime;
             Vector3 targetVelocity = (targetPosition - transform.position) / Time.deltaTime;
 
             bool useVerticalVelocity = true;
@@ -203,49 +202,26 @@ namespace Invector.vCharacterController
 
         public virtual void CheckSlopeLimit()
         {
-            if (input.sqrMagnitude < 0.1) 
-            {
-                stopMove = false; // Reset stopMove jika tidak ada input
-                return;
-            }
+            if (input.sqrMagnitude < 0.1) return;
 
             RaycastHit hitinfo;
             var hitAngle = 0f;
 
-            // Check collision di depan player
-            Vector3 castOrigin = transform.position + Vector3.up * (_capsuleCollider.height * 0.5f);
-            Vector3 castDirection = moveDirection.normalized;
-            float castDistance = _capsuleCollider.radius + 0.2f;
-
-            if (Physics.Linecast(castOrigin, castOrigin + castDirection * castDistance, out hitinfo, groundLayer))
+            if (Physics.Linecast(transform.position + Vector3.up * (_capsuleCollider.height * 0.5f), transform.position + moveDirection.normalized * (_capsuleCollider.radius + 0.2f), out hitinfo, groundLayer))
             {
                 hitAngle = Vector3.Angle(Vector3.up, hitinfo.normal);
 
                 var targetPoint = hitinfo.point + moveDirection.normalized * _capsuleCollider.radius;
-                if ((hitAngle > slopeLimit) && Physics.Linecast(castOrigin, targetPoint, out hitinfo, groundLayer))
+                if ((hitAngle > slopeLimit) && Physics.Linecast(transform.position + Vector3.up * (_capsuleCollider.height * 0.5f), targetPoint, out hitinfo, groundLayer))
                 {
                     hitAngle = Vector3.Angle(Vector3.up, hitinfo.normal);
 
                     if (hitAngle > slopeLimit && hitAngle < 85f)
                     {
-                        stopMove = true;
                         return;
                     }
                 }
             }
-
-            // Additional wall collision check
-            if (Physics.SphereCast(castOrigin, _capsuleCollider.radius * 0.8f, castDirection, out hitinfo, castDistance, groundLayer))
-            {
-                hitAngle = Vector3.Angle(Vector3.up, hitinfo.normal);
-                if (hitAngle > 85f) // Vertical wall
-                {
-                    stopMove = true;
-                    return;
-                }
-            }
-
-            stopMove = false;
         }
 
         public virtual void RotateToPosition(Vector3 position)

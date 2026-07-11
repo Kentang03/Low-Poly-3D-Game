@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 95d21cda1ad495f4c87930c8954ad8c0, type: 3}
+  m_Name: CharacterAudioPreset
+  m_EditorClassIdentifier: 
+  jumpSound: {fileID: 8300000, guid: 979ff9c480cdddd48b4d0261d6499835, type: 3}
+  jumpVolume: 0.7
+  landingSound: {fileID: 0}
+  landingVolume: 0.6
+  walkFootsteps:
+  - {fileID: 8300000, guid: a255db6304fe2124184438b3371be169, type: 3}
+  - {fileID: 8300000, guid: 2229bea736bba2e4ebc4f567a8ea283a, type: 3}
+  - {fileID: 8300000, guid: 3dc1d65aa1b5c394da753d53be47e591, type: 3}
+  - {fileID: 8300000, guid: 06ec15f52ec6340499f08f39ded6e8b4, type: 3}
+  walkVolume: 1
+  walkStepInterval: 0.5
+  runFootsteps:
+  - {fileID: 8300000, guid: a255db6304fe2124184438b3371be169, type: 3}
+  - {fileID: 8300000, guid: 2229bea736bba2e4ebc4f567a8ea283a, type: 3}
+  - {fileID: 8300000, guid: 3dc1d65aa1b5c394da753d53be47e591, type: 3}
+  - {fileID: 8300000, guid: 06ec15f52ec6340499f08f39ded6e8b4, type: 3}
+  runVolume: 1
+  runStepInterval: 0.35
+  sprintFootsteps:
+  - {fileID: 8300000, guid: a255db6304fe2124184438b3371be169, type: 3}
+  - {fileID: 8300000, guid: 2229bea736bba2e4ebc4f567a8ea283a, type: 3}
+  - {fileID: 8300000, guid: 3dc1d65aa1b5c394da753d53be47e591, type: 3}
+  - {fileID: 8300000, guid: 06ec15f52ec6340499f08f39ded6e8b4, type: 3}
+  sprintVolume: 1
+  sprintStepInterval: 0.25
+  minInputForFootsteps: 0.1
+  useRandomPitch: 1
+  pitchVariation: 0.1
