@@ -59863,7 +59863,7 @@ PrefabInstance:
       objectReference: {fileID: 969220743}
     - target: {fileID: 8914863641790562811, guid: 969adee00271f194c878b31a5aca53a0, type: 3}
       propertyPath: freeSpeed.sprintSpeed
-      value: 80
+      value: 8
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
